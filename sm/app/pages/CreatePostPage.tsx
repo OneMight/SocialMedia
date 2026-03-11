@@ -1,5 +1,6 @@
+// app/pages/CreatePostPage.tsx
 import React, { useState } from 'react'
-import { View, Text, Image, TextInput, Pressable, ScrollView } from 'react-native'
+import { View, Text, Image, TextInput, Pressable, ScrollView, ActivityIndicator } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStackParamList } from '../types/navigation'
@@ -22,7 +23,7 @@ export function CreatePostPage() {
     setImageUrl(`https://picsum.photos/600?random=${randomId}`)
   }
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (
       (type === 'photo' && !imageUrl) ||
       (type === 'thought' && !caption.trim())
@@ -30,12 +31,9 @@ export function CreatePostPage() {
       return
 
     setIsSubmitting(true)
-
-    setTimeout(() => {
-      createPost(type, caption, type === 'photo' ? imageUrl : undefined)
-      setIsSubmitting(false)
-      navigation.navigate('Feed')
-    }, 800)
+    await createPost(type, caption, type === 'photo' ? imageUrl : undefined)
+    setIsSubmitting(false)
+    navigation.navigate('Feed')
   }
 
   if (!currentUser) {
@@ -48,9 +46,6 @@ export function CreatePostPage() {
   return (
     <Layout title="New Transmission" showBackButton={true}>
       <ScrollView className="flex-1 bg-[#0A0A0B]">
-
-        {/* TYPE SELECTOR */}
-
         <View className="flex-row p-4">
           <Pressable
             onPress={() => setType('photo')}
@@ -58,9 +53,7 @@ export function CreatePostPage() {
               type === 'photo' ? 'bg-[#2A2A2E]' : 'bg-[#161618]'
             }`}
           >
-            <Text className="text-center text-white font-bold">
-              Photo
-            </Text>
+            <Text className="text-center text-white font-bold">Photo</Text>
           </Pressable>
 
           <Pressable
@@ -69,24 +62,18 @@ export function CreatePostPage() {
               type === 'thought' ? 'bg-[#2A2A2E]' : 'bg-[#161618]'
             }`}
           >
-            <Text className="text-center text-white font-bold">
-              Thought
-            </Text>
+            <Text className="text-center text-white font-bold">Thought</Text>
           </Pressable>
         </View>
 
-        {/* PHOTO MODE */}
-
         {type === 'photo' ? (
           <View className="p-4">
-
             {imageUrl ? (
               <View>
                 <Image
                   source={{ uri: imageUrl }}
                   className="w-full h-80 rounded-2xl"
                 />
-
                 <Pressable
                   onPress={() => setImageUrl('')}
                   className="mt-3 bg-[#E85D4A] p-3 rounded-xl"
@@ -99,9 +86,7 @@ export function CreatePostPage() {
                 onPress={handleGenerateImage}
                 className="bg-[#1E1E21] p-6 rounded-2xl items-center"
               >
-                <Text className="text-white font-bold">
-                  Select Image
-                </Text>
+                <Text className="text-white font-bold">Select Image</Text>
               </Pressable>
             )}
 
@@ -113,7 +98,6 @@ export function CreatePostPage() {
               multiline={true}
               className="bg-[#161618] text-white mt-4 p-4 rounded-xl"
             />
-
           </View>
         ) : (
           <View className="p-4">
@@ -128,22 +112,23 @@ export function CreatePostPage() {
           </View>
         )}
 
-        {/* PUBLISH BUTTON */}
-
         <View className="p-4">
           <Pressable
             onPress={handlePublish}
             disabled={!isValid || isSubmitting}
             className={`p-4 rounded-xl ${
-              !isValid ? 'bg-[#1E1E21]' : 'bg-[#E8A838]'
+              !isValid || isSubmitting ? 'bg-[#1E1E21]' : 'bg-[#E8A838]'
             }`}
           >
-            <Text className="text-center font-bold text-lg">
-              {isSubmitting ? 'Transmitting...' : 'Publish'}
-            </Text>
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text className="text-center font-bold text-lg">
+                Publish
+              </Text>
+            )}
           </Pressable>
         </View>
-
       </ScrollView>
     </Layout>
   )

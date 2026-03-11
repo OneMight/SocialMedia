@@ -53,7 +53,7 @@ export function ProfilePage() {
     setEditVisible(true)
   }
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     setSaving(true)
     setTimeout(() => {
       editProfile({

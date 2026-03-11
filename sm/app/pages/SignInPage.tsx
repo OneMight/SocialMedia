@@ -1,5 +1,6 @@
+// app/pages/SignInPage.tsx
 import React, { useState, useEffect } from 'react'
-import { View, Text, TextInput, Pressable } from 'react-native'
+import { View, Text, TextInput, Pressable, ActivityIndicator } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useSocialStore } from '../../hooks/useSocialStore'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -10,13 +11,16 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>
 export function SignInPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const { login, authError, clearAuthError } = useSocialStore()
   const navigation = useNavigation<NavigationProp>()
 
   useEffect(() => { clearAuthError() }, [])
 
-  const handleSubmit = () => {
-    const ok = login(username, password)
+  const handleSubmit = async () => {
+    setIsLoading(true)
+    const ok = await login(username, password)
+    setIsLoading(false)
     if (ok) navigation.navigate('Feed')
   }
 
@@ -30,7 +34,6 @@ export function SignInPage() {
   return (
     <View className="flex-1 bg-[#0A0A0B] justify-center items-center px-6">
       <View className="w-full max-w-sm bg-[#161618] border border-[#2A2A2E] rounded-2xl px-6 py-10">
-
         <View className="items-center mb-10">
           <Text className="text-4xl font-bold text-[#F0EDE8]">
             <Text className="text-[#E8A838]">P</Text>ulse
@@ -38,7 +41,6 @@ export function SignInPage() {
           <Text className="text-[#8A8A8F] text-sm mt-2">Feel the rhythm of your world</Text>
         </View>
 
-        {/* General error */}
         {authError?.field === 'general' && (
           <View className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 mb-4">
             <Text className="text-red-400 text-sm text-center">{authError.message}</Text>
@@ -71,12 +73,16 @@ export function SignInPage() {
 
         <Pressable
           onPress={handleSubmit}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isLoading}
           className={`py-4 rounded-xl items-center mt-2 ${
-            isFormValid ? 'bg-[#E8A838]' : 'bg-[#E8A838]/40'
+            isFormValid && !isLoading ? 'bg-[#E8A838]' : 'bg-[#E8A838]/40'
           }`}
         >
-          <Text className="font-bold text-[#0A0A0B]">Sign In</Text>
+          {isLoading ? (
+            <ActivityIndicator color="#0A0A0B" />
+          ) : (
+            <Text className="font-bold text-[#0A0A0B]">Sign In</Text>
+          )}
         </Pressable>
 
         <View className="mt-6 items-center">
@@ -85,7 +91,6 @@ export function SignInPage() {
             <Text className="text-[#E8A838] font-bold mt-1">Create account</Text>
           </Pressable>
         </View>
-
       </View>
     </View>
   )

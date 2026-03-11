@@ -1,0 +1,5 @@
+# Автоматически определять текстовые файлы и нормализовать окончания строк
+* text=auto
+
+# Для package-lock.json используйте LF
+package-lock.json text eol=lf
