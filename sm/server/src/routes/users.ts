@@ -4,6 +4,14 @@ import { requireAuth, AuthRequest } from '../middleware/auth'
 
 const router = Router()
 
+
+router.get('/me/orbiting', requireAuth, async (req: AuthRequest, res: Response) => {
+  const result = await pool.query(
+    'SELECT following_id FROM orbits WHERE follower_id = $1', [req.userId]
+  )
+  res.json(result.rows.map((r: any) => r.following_id))
+})
+
 // GET /api/users — все пользователи с счётчиками
 router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
   const result = await pool.query(`
@@ -48,13 +56,7 @@ router.get('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   res.json(formatUser(result.rows[0]))
 })
 
-// GET /api/users/me/orbiting — кого я читаю
-router.get('/me/orbiting', requireAuth, async (req: AuthRequest, res: Response) => {
-  const result = await pool.query(
-    'SELECT following_id FROM orbits WHERE follower_id = $1', [req.userId]
-  )
-  res.json(result.rows.map((r: any) => r.following_id))
-})
+
 
 function formatUser(u: any) {
   return {

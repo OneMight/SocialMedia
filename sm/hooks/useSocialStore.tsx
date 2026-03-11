@@ -1,7 +1,7 @@
 // hooks/useSocialStore.tsx
 import React, { useState, createContext, useContext, ReactNode, useEffect } from 'react'
 import { User, Post } from '../app/types/social'
-import { api, setToken, removeToken } from '../api/client'
+import api, { setToken, removeToken } from '../api/client' // Импортируем функции
 
 interface AuthError {
   field: 'username' | 'email' | 'password' | 'general'
@@ -67,7 +67,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           loadPulsedPosts().catch(() => {})
         ])
       } catch (error) {
-        // Нет токена или он невалидный - ничего страшного
         console.log('No valid session')
       }
     } catch (error) {
@@ -78,23 +77,43 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   }
 
   const loadUsers = async () => {
-    const data = await api.users.getAll()
-    setUsers(data)
+    try {
+      const data = await api.users.getAll()
+      setUsers(data)
+    } catch (error) {
+      console.error('Failed to load users:', error)
+      throw error
+    }
   }
 
   const loadPosts = async () => {
-    const data = await api.posts.getAll()
-    setPosts(data)
+    try {
+      const data = await api.posts.getAll()
+      setPosts(data)
+    } catch (error) {
+      console.error('Failed to load posts:', error)
+      throw error
+    }
   }
 
   const loadOrbiting = async () => {
-    const data = await api.users.getOrbiting()
-    setOrbiting(new Set(data))
+    try {
+      const data = await api.users.getOrbiting()
+      setOrbiting(new Set(data))
+    } catch (error) {
+      console.error('Failed to load orbiting:', error)
+      throw error
+    }
   }
 
   const loadPulsedPosts = async () => {
-    const data = await api.posts.getPulsed()
-    setPulsedPosts(new Set(data))
+    try {
+      const data = await api.posts.getPulsed()
+      setPulsedPosts(new Set(data))
+    } catch (error) {
+      console.error('Failed to load pulsed posts:', error)
+      throw error
+    }
   }
 
   const clearAuthError = () => setAuthError(null)
@@ -112,7 +131,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      console.log('Attempting login for:', usernameOrEmail)
       const response = await api.auth.login({ usernameOrEmail, password })
+      console.log('Login response:', response)
+      
       await setToken(response.token)
       setCurrentUser(response.user)
       
@@ -125,6 +147,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       
       return true
     } catch (error: any) {
+      console.error('Login error:', error)
       if (error.field) {
         setAuthError({ field: error.field, message: error.message })
       } else {
@@ -158,12 +181,16 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     setAuthError(null)
 
     try {
+      console.log('Attempting registration for:', data.username)
       const response = await api.auth.register(data)
+      console.log('Registration response:', response)
+      
       await setToken(response.token)
       setCurrentUser(response.user)
       await loadUsers()
       return true
     } catch (error: any) {
+      console.error('Registration error:', error)
       if (error.field) {
         setAuthError({ field: error.field, message: error.message })
       } else {
@@ -248,7 +275,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     if (!currentUser) return
     
     try {
+      console.log('Creating post:', { type, caption, imageUrl })
       const newPost = await api.posts.create({ type, caption, imageUrl })
+      console.log('Post created:', newPost)
+      
       setPosts(prev => [newPost, ...prev])
       
       setUsers(prev =>
@@ -258,6 +288,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       )
     } catch (error) {
       console.error('Failed to create post:', error)
+      throw error
     }
   }
 

@@ -1,17 +1,18 @@
 import express from 'express'
 import cors from 'cors'
+import path from 'path'
 import dotenv from 'dotenv'
 import authRoutes from './routes/auth'
 import postRoutes from './routes/posts'
 import userRoutes from './routes/users'
 import orbitRoutes from './routes/orbit'
+import uploadRoutes from './routes/upload'
 
 dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 3001
 
-// Настройка CORS
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -21,19 +22,20 @@ app.use(cors({
 
 app.use(express.json())
 
-// Логирование запросов
+// Статическая раздача загруженных файлов
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
+
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`)
   next()
 })
 
-// Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/posts', postRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/orbit', orbitRoutes)
+app.use('/api/upload', uploadRoutes)
 
-// Health check
 app.get('/', (req, res) => {
   res.json({ 
     status: 'ok', 
@@ -42,24 +44,10 @@ app.get('/', (req, res) => {
       auth: '/api/auth',
       posts: '/api/posts',
       users: '/api/users',
-      orbit: '/api/orbit'
+      orbit: '/api/orbit',
+      upload: '/api/upload'
     }
   })
-})
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
-
-// Обработка 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' })
-})
-
-// Error handling
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err)
-  res.status(500).json({ error: 'Internal server error' })
 })
 
 app.listen(PORT, () => {

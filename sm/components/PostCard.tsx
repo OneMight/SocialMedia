@@ -1,3 +1,4 @@
+// components/PostCard.tsx
 import React, { useState } from 'react'
 import { View, Text, Image, Pressable } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
@@ -22,8 +23,8 @@ export function PostCard({ post }: PostCardProps) {
 
   if (!user) return null
 
-  const handlePulse = () => {
-    togglePulse(post.id)
+  const handlePulse = async () => {
+    await togglePulse(post.id)
     if (!isPulsed) {
       setIsAnimating(true)
       setTimeout(() => setIsAnimating(false), 400)
@@ -46,7 +47,9 @@ export function PostCard({ post }: PostCardProps) {
               source={{ uri: user.avatarUrl }}
               className="w-10 h-10 rounded-full border border-[#2A2A2E]"
             />
-            <View className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#121214]" />
+            {user.status === 'online' && (
+              <View className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#121214]" />
+            )}
           </View>
 
           <View className="ml-3">
@@ -74,10 +77,7 @@ export function PostCard({ post }: PostCardProps) {
           </View>
         ) : (
           <View>
-            <Pressable 
-              onPress={handlePulse} // Дабл-тап в мобилках сложнее, пока оставим так
-              className="active:opacity-95"
-            >
+            <Pressable onPress={handlePulse} className="active:opacity-95">
               <Image
                 source={{ uri: post.imageUrl }}
                 className="w-full aspect-square bg-[#1E1E21]"
@@ -101,7 +101,6 @@ export function PostCard({ post }: PostCardProps) {
       <View className="flex-row items-center justify-between px-4 py-4 mt-1">
         <View className="flex-row items-center space-x-6">
           
-          {/* Pulse Button */}
           <Pressable
             onPress={handlePulse}
             className={`flex-row items-center px-3 py-1.5 rounded-full ${
@@ -118,7 +117,6 @@ export function PostCard({ post }: PostCardProps) {
             </Text>
           </Pressable>
 
-          {/* Comment Button */}
           <Pressable className="flex-row items-center active:opacity-50">
             <Text className="text-xl opacity-40">💬</Text>
             <Text className="ml-1.5 text-[#6B6B70] font-bold text-[13px]">
@@ -126,13 +124,11 @@ export function PostCard({ post }: PostCardProps) {
             </Text>
           </Pressable>
 
-          {/* Repost Button */}
           <Pressable className="active:opacity-50">
             <Text className="text-xl opacity-40">🔁</Text>
           </Pressable>
         </View>
 
-        {/* Bookmark */}
         <Pressable className="active:opacity-50 p-1">
           <Text className="text-xl opacity-40">🔖</Text>
         </Pressable>
