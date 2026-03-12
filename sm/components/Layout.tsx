@@ -8,7 +8,7 @@ export type RootStackParamList = {
   Feed: undefined
   Explore: undefined
   CreatePost: undefined
-  Activity: undefined
+  Recognize: undefined
   Profile: { userId?: string } | undefined
   SignIn: undefined
 }
@@ -133,7 +133,7 @@ export function Layout({
             </View>
           </Pressable>
 
-          <NavButton label="Activity" icon="⚡" screen="Activity" />
+          <NavButton label="AI Scan" icon="🧠" screen="Recognize" />
 
           {/* Profile */}
           <Pressable
