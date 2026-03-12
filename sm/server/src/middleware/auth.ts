@@ -8,6 +8,7 @@ export interface AuthRequest extends Request {
 }
 
 export function requireAuth(req: AuthRequest, res: Response, next: NextFunction) {
+
   const authHeader = req.headers.authorization
   if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Authorization required' })

@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const getBaseUrl = () => {
   if (Platform.OS === 'android') return 'http://10.0.2.2:3001/api';
   if (Platform.OS === 'web') return 'http://localhost:3001/api';
+  if (Platform.OS === 'ios') return 'http://localhost:3001/api';
   return 'http://192.168.1.3:3001/api'; 
 };
 
@@ -50,8 +51,10 @@ const api = {
   users: {
     getAll: () => apiClient.get('/users').then(res => res.data),
     getOrbiting: () => apiClient.get('/users/me/orbiting').then(res => res.data),
-    updateProfile: (data: { fullName?: string, bio?: string, avatarUrl?: string }) => 
-      apiClient.patch('/users/me', data), // Используем PATCH для частичного обновления
+    updateProfile: (data: { fullName?: string, bio?: string, avatarUrl?: string, id: string }) => 
+      apiClient.post('/users/me', data),
+    getFollowers: (id: string) => apiClient.get(`/users/${id}/followers`).then(res => res.data),
+  getFollowing: (id: string) => apiClient.get(`/users/${id}/following`).then(res => res.data),
   
   },
   posts: {
@@ -62,6 +65,7 @@ const api = {
   },
   orbit: {
     toggle: (id: string) => apiClient.post(`/orbit/toggle/${id}`).then(res => res.data),
+  checkStatus: (id: string) => apiClient.get(`/orbit/status/${id}`).then(res => res.data),
   },
   upload: {
     image: (formData: FormData) => apiClient.post('/upload', formData, {

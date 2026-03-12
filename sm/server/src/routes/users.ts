@@ -40,25 +40,9 @@ router.get('/me', requireAuth, async (req: AuthRequest, res: Response) => {
   if (!result.rows[0]) return res.status(404).json({ error: 'User not found' })
   res.json(formatUser(result.rows[0]))
 })
-
-// GET /api/users/:id
-router.get('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
-  const result = await pool.query(`
-    SELECT
-      u.id, u.username, u.email, u.full_name, u.avatar_url, u.bio, u.status,
-      (SELECT COUNT(*) FROM orbits WHERE following_id = u.id) AS followers_count,
-      (SELECT COUNT(*) FROM orbits WHERE follower_id  = u.id) AS following_count,
-      (SELECT COUNT(*) FROM posts   WHERE user_id     = u.id) AS posts_count
-    FROM users u WHERE u.id = $1
-  `, [req.params.id])
-
-  if (!result.rows[0]) return res.status(404).json({ error: 'User not found' })
-  res.json(formatUser(result.rows[0]))
-})
-router.patch('/me', requireAuth, async (req: AuthRequest, res: Response) => {
+router.post('/me', requireAuth, async (req: AuthRequest, res: Response) => {
   const { fullName, bio, avatarUrl } = req.body;
-  
-  try {
+   try {
     const result = await pool.query(
       `UPDATE users 
        SET full_name = COALESCE($1, full_name), 
@@ -74,6 +58,58 @@ router.patch('/me', requireAuth, async (req: AuthRequest, res: Response) => {
     console.error('Update profile error:', error);
     res.status(500).json({ error: 'Failed to update profile' });
   }
+});
+
+// GET /api/users/:id
+router.get('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
+  const result = await pool.query(`
+    SELECT
+      u.id, u.username, u.email, u.full_name, u.avatar_url, u.bio, u.status,
+      (SELECT COUNT(*) FROM orbits WHERE following_id = u.id) AS followers_count,
+      (SELECT COUNT(*) FROM orbits WHERE follower_id  = u.id) AS following_count,
+      (SELECT COUNT(*) FROM posts   WHERE user_id     = u.id) AS posts_count
+    FROM users u WHERE u.id = $1
+  `, [req.params.id])
+
+  if (!result.rows[0]) return res.status(404).json({ error: 'User not found' })
+  res.json(formatUser(result.rows[0]))
+})
+
+  
+ router.post('/toggle/:id', requireAuth, async (req: AuthRequest, res: Response) => {
+  const targetId = req.params.id;
+  const userId = req.userId;
+
+  try {
+    // Проверяем, есть ли уже подписка
+    const existing = await pool.query(
+      'SELECT * FROM orbit WHERE follower_id = $1 AND following_id = $2',
+      [userId, targetId]
+    );
+
+    if (existing.rows.length > 0) {
+      // Удаляем (отписка)
+      await pool.query('DELETE FROM orbit WHERE follower_id = $1 AND following_id = $2', [userId, targetId]);
+      res.json({ orbit: false });
+    } else {
+      // Добавляем (подписка)
+      await pool.query('INSERT INTO orbit (follower_id, following_id) VALUES ($1, $2)', [userId, targetId]);
+      res.json({ orbit: true });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Social error' });
+  }
+});
+
+// Получить список подписок пользователя
+router.get('/following/:id', async (req, res) => {
+  const result = await pool.query(
+    `SELECT u.* FROM users u 
+     JOIN orbit o ON u.id = o.following_id 
+     WHERE o.follower_id = $1`, 
+    [req.params.id]
+  );
+  res.json(result.rows.map(formatUser));
 });
 
 

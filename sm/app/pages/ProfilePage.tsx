@@ -10,9 +10,6 @@ import { useSocialStore } from '../../hooks/useSocialStore'
 import { RootStackParamList } from '../types/navigation'
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>
-
-// ─── ДОБАВЛЕНА ФУНКЦИЯ ───
-// Заменяет битые ссылки picsum на ui-avatars или генерирует новую по имени
 const getSafeAvatar = (url: string | undefined | null, name: string) => {
   if (!url || url.includes('picsum.photos')) {
     const safeName = name ? encodeURIComponent(name) : 'User'
@@ -44,6 +41,11 @@ export function ProfilePage() {
   const profileId = userId || currentUser?.id
   const profileUser = users.find((u) => u.id === profileId)
 
+
+  const handleOrbitToggle = async () => {
+    if (profileId === currentUser?.id) return; // Нельзя подписаться на себя
+    await toggleOrbit(profileId)
+  }
 // useEffect(()=>{
 //   const handler=setTimeout(()=>{
 //     setDeffered(editAvatar)
@@ -79,19 +81,17 @@ export function ProfilePage() {
 
   const handleSaveProfile = async () => {
     setSaving(true)
-    setTimeout(() => {
       const finalName = editFullName.trim() || profileUser.fullName;
       const finalAvatar = editAvatar.trim();
 
       editProfile({
         fullName: finalName,
         bio: editBio.trim(),
-        // Если поле ссылки пустое, сохраняем сгенерированный ui-avatars прямо в базу
+        id: currentUser?.id as string,
         avatarUrl: finalAvatar || getSafeAvatar('', finalName),
       })
       setSaving(false)
       setEditVisible(false)
-    }, 600) // имитация запроса
   }
 
   const handleLogout = () => {
@@ -124,18 +124,23 @@ export function ProfilePage() {
             </View>
 
             <View className="flex-1 flex-row justify-around ml-6">
+             <View className="flex-row justify-around mb-6">
               <View className="items-center">
-                <Text className="text-white font-bold text-xl">{profileUser.postsCount}</Text>
-                <Text className="text-xs text-[#8A8A8F] mt-0.5">Posts</Text>
+                <Text className="text-white font-bold text-lg">{profileUser?.postsCount || 0}</Text>
+                <Text className="text-[#8A8A8F] text-xs">Posts</Text>
               </View>
-              <View className="items-center">
-                <Text className="text-white font-bold text-xl">{profileUser.followersCount}</Text>
-                <Text className="text-xs text-[#8A8A8F] mt-0.5">Followers</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-white font-bold text-xl">{profileUser.followingCount}</Text>
-                <Text className="text-xs text-[#8A8A8F] mt-0.5">Following</Text>
-              </View>
+              
+              {/* Сделаем эти элементы кликабельными в будущем для открытия списка */}
+              <Pressable className="items-center">
+                <Text className="text-white font-bold text-lg">{profileUser?.followersCount || 0}</Text>
+                <Text className="text-[#8A8A8F] text-xs">Followers</Text>
+              </Pressable>
+              
+              <Pressable className="items-center">
+                <Text className="text-white font-bold text-lg">{profileUser?.followingCount || 0}</Text>
+                <Text className="text-[#8A8A8F] text-xs">Following</Text>
+              </Pressable>
+            </View>
             </View>
           </View>
 
@@ -164,16 +169,19 @@ export function ProfilePage() {
             </View>
           ) : (
             <View className="flex-row gap-3">
-              <Pressable
-                onPress={() => toggleOrbit(profileUser.id)}
-                className={`flex-1 py-3 rounded-xl items-center ${
-                  isOrbiting ? 'bg-[#1E1E21] border border-[#2A2A2E]' : 'bg-[#E8A838]'
-                }`}
-              >
-                <Text className={`font-semibold text-sm ${isOrbiting ? 'text-white' : 'text-black'}`}>
-                  {isOrbiting ? '✓ In Orbit' : '+ Enter Orbit'}
-                </Text>
-              </Pressable>
+              {/* КНОПКА ПОДПИСКИ */}
+                {!isCurrentUser && (
+                  <Pressable
+                    onPress={handleOrbitToggle}
+                    className={`py-3 rounded-xl items-center ${
+                      isOrbiting ? 'bg-[#1E1E21] border border-[#2A2A2E]' : 'bg-[#E8A838]'
+                    }`}
+                  >
+                    <Text className={`font-bold ${isOrbiting ? 'text-white' : 'text-black'}`}>
+                      {isOrbiting ? '✓ In Orbit' : '+ Enter Orbit'}
+                    </Text>
+                  </Pressable>
+                )}
 
               <Pressable className="w-12 bg-[#1E1E21] border border-[#2A2A2E] py-3 rounded-xl items-center">
                 <Text className="text-lg">💬</Text>
