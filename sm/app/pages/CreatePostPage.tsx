@@ -120,9 +120,10 @@ export function CreatePostPage() {
   }
 
   const handleGenerateImage = () => {
-    const randomId = Math.floor(Math.random() * 1000)
-    setImageUrl(`https://picsum.photos/600?random=${randomId}`)
-  }
+  const randomId = Math.floor(Math.random() * 1000)
+  // Используйте полный URL с https://
+  setImageUrl(`https://picsum.photos/600?random=${randomId}`)
+}
 
   const handlePublish = async () => {
     if (

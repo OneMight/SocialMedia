@@ -55,7 +55,26 @@ router.get('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   if (!result.rows[0]) return res.status(404).json({ error: 'User not found' })
   res.json(formatUser(result.rows[0]))
 })
+router.patch('/me', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { fullName, bio, avatarUrl } = req.body;
+  
+  try {
+    const result = await pool.query(
+      `UPDATE users 
+       SET full_name = COALESCE($1, full_name), 
+           bio = COALESCE($2, bio), 
+           avatar_url = COALESCE($3, avatar_url)
+       WHERE id = $4
+       RETURNING *`,
+      [fullName, bio, avatarUrl, req.userId]
+    );
 
+    res.json(formatUser(result.rows[0]));
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
 
 
 function formatUser(u: any) {

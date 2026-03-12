@@ -123,15 +123,7 @@ export function PostCard({ post }: PostCardProps) {
               {post.comments?.length || 0}
             </Text>
           </Pressable>
-
-          <Pressable className="active:opacity-50">
-            <Text className="text-xl opacity-40">🔁</Text>
-          </Pressable>
         </View>
-
-        <Pressable className="active:opacity-50 p-1">
-          <Text className="text-xl opacity-40">🔖</Text>
-        </Pressable>
       </View>
     </View>
   )

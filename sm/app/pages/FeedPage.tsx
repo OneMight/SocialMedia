@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStackParamList } from '../types/navigation'
 import { Layout } from '../../components/Layout'
-import { WavelengthBar } from '../../components/WavelengthBar'
 import { PostCard } from '../../components/PostCard'
 import { useSocialStore } from '../../hooks/useSocialStore'
 
@@ -39,9 +38,6 @@ export function FeedPage() {
 
   return (
     <Layout>
-      <View className="border-b border-[#2A2A2E]">
-        <WavelengthBar />
-      </View>
 
       <ScrollView
         className="flex-1 bg-[#0A0A0B]"

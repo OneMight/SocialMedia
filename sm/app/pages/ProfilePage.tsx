@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View, Text, Image, ScrollView, Pressable,
   Modal, TextInput, ActivityIndicator,
@@ -11,11 +11,20 @@ import { RootStackParamList } from '../types/navigation'
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>
 
+// ─── ДОБАВЛЕНА ФУНКЦИЯ ───
+// Заменяет битые ссылки picsum на ui-avatars или генерирует новую по имени
+const getSafeAvatar = (url: string | undefined | null, name: string) => {
+  if (!url || url.includes('picsum.photos')) {
+    const safeName = name ? encodeURIComponent(name) : 'User'
+    return `https://ui-avatars.com/api/?name=${safeName}&background=random`
+  }
+  return url
+}
+
 export function ProfilePage() {
   const route: any = useRoute()
   const navigation = useNavigation<NavigationProp>()
   const { userId } = route.params || {}
-
   const { users, currentUser, posts, orbiting, toggleOrbit, logout, editProfile } =
     useSocialStore()
 
@@ -23,7 +32,10 @@ export function ProfilePage() {
   const [editVisible, setEditVisible] = useState(false)
   const [editFullName, setEditFullName] = useState('')
   const [editBio, setEditBio] = useState('')
+  
   const [editAvatar, setEditAvatar] = useState('')
+// const [defferedValue, setDeffered] = useState('')
+
   const [saving, setSaving] = useState(false)
 
   // --- Logout confirm state ---
@@ -31,6 +43,17 @@ export function ProfilePage() {
 
   const profileId = userId || currentUser?.id
   const profileUser = users.find((u) => u.id === profileId)
+
+// useEffect(()=>{
+//   const handler=setTimeout(()=>{
+//     setDeffered(editAvatar)
+//   },500)
+//   return () =>{
+//     clearTimeout(handler)
+//   }
+// },[editAvatar])
+
+// console.log(defferedValue)
 
   if (!profileUser) {
     return (
@@ -49,17 +72,22 @@ export function ProfilePage() {
   const openEditModal = () => {
     setEditFullName(profileUser.fullName)
     setEditBio(profileUser.bio)
-    setEditAvatar(profileUser.avatarUrl)
+    // Если в базе лежит picsum, не показываем его в поле ввода, чтобы не смущать
+    setEditAvatar(profileUser.avatarUrl.includes('picsum') ? '' : profileUser.avatarUrl)
     setEditVisible(true)
   }
 
   const handleSaveProfile = async () => {
     setSaving(true)
     setTimeout(() => {
+      const finalName = editFullName.trim() || profileUser.fullName;
+      const finalAvatar = editAvatar.trim();
+
       editProfile({
-        fullName: editFullName.trim() || profileUser.fullName,
+        fullName: finalName,
         bio: editBio.trim(),
-        avatarUrl: editAvatar.trim() || profileUser.avatarUrl,
+        // Если поле ссылки пустое, сохраняем сгенерированный ui-avatars прямо в базу
+        avatarUrl: finalAvatar || getSafeAvatar('', finalName),
       })
       setSaving(false)
       setEditVisible(false)
@@ -85,7 +113,8 @@ export function ProfilePage() {
           <View className="flex-row items-center mb-6">
             <View className="relative">
               <Image
-                source={{ uri: profileUser.avatarUrl }}
+                // ── ИСПОЛЬЗУЕМ getSafeAvatar ──
+                source={{ uri: getSafeAvatar(profileUser.avatarUrl, profileUser.fullName) }}
                 className="w-24 h-24 rounded-2xl"
               />
               {/* Online indicator */}
@@ -101,11 +130,11 @@ export function ProfilePage() {
               </View>
               <View className="items-center">
                 <Text className="text-white font-bold text-xl">{profileUser.followersCount}</Text>
-                <Text className="text-xs text-[#8A8A8F] mt-0.5">Orbiters</Text>
+                <Text className="text-xs text-[#8A8A8F] mt-0.5">Followers</Text>
               </View>
               <View className="items-center">
                 <Text className="text-white font-bold text-xl">{profileUser.followingCount}</Text>
-                <Text className="text-xs text-[#8A8A8F] mt-0.5">Orbiting</Text>
+                <Text className="text-xs text-[#8A8A8F] mt-0.5">Following</Text>
               </View>
             </View>
           </View>
@@ -201,13 +230,14 @@ export function ProfilePage() {
             {/* Avatar preview */}
             <View className="items-center mb-6">
               <Image
-                source={{ uri: editAvatar || profileUser.avatarUrl }}
+                // ── ИСПОЛЬЗУЕМ getSafeAvatar ДЛЯ ПРЕВЬЮ ──
+                source={{ uri: getSafeAvatar(editAvatar || profileUser.avatarUrl, editFullName || profileUser.fullName) }}
                 className="w-20 h-20 rounded-2xl mb-3"
               />
               <TextInput
                 value={editAvatar}
                 onChangeText={setEditAvatar}
-                placeholder="Avatar URL"
+                placeholder="Avatar URL (leave blank for auto-generate)"
                 placeholderTextColor="#8A8A8F"
                 className="w-full px-4 py-3 rounded-xl border border-[#2A2A2E] bg-[#1E1E21] text-[#F0EDE8] text-sm"
                 autoCapitalize="none"

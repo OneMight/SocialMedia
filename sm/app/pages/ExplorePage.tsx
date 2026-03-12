@@ -16,15 +16,6 @@ export function ExplorePage() {
 
   const [search, setSearch] = useState('')
 
-  const tags = [
-    'Photography',
-    'Design',
-    'Thoughts',
-    'Architecture',
-    'Minimal',
-    'Tech',
-  ]
-
   return (
     <Layout hideTopBar={true}>
 
@@ -39,33 +30,6 @@ export function ExplorePage() {
           placeholderTextColor="#8A8A8F"
           className="bg-[#161618] text-white px-4 py-3 rounded-xl border border-[#2A2A2E]"
         />
-
-        {/* TAGS */}
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mt-4"
-        >
-          {tags.map((tag, i) => (
-            <Pressable
-              key={tag}
-              className={`mr-2 px-4 py-2 rounded-full ${
-                i === 0
-                  ? 'bg-[#E8A838]'
-                  : 'bg-[#1E1E21] border border-[#2A2A2E]'
-              }`}
-            >
-              <Text
-                className={
-                  i === 0 ? 'text-black' : 'text-white'
-                }
-              >
-                {tag}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
       </View>
 
       {/* POSTS GRID */}

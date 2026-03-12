@@ -50,6 +50,9 @@ const api = {
   users: {
     getAll: () => apiClient.get('/users').then(res => res.data),
     getOrbiting: () => apiClient.get('/users/me/orbiting').then(res => res.data),
+    updateProfile: (data: { fullName?: string, bio?: string, avatarUrl?: string }) => 
+      apiClient.patch('/users/me', data), // Используем PATCH для частичного обновления
+  
   },
   posts: {
     getAll: () => apiClient.get('/posts').then(res => res.data),
